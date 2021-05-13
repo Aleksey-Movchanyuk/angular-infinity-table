@@ -89,22 +89,24 @@ export class TableComponent implements OnInit, AfterViewInit {
 
       this.chemicalElemetService.getChemicalElementsPreviousPage(this.currentPage)
         .then(response => {
+          this.nextElements = this.currElements;
           this.currElements = response.data;
 
           this.currentPage = response.navigation.page;
           this.isFirstPage = response.navigation.is_first_page;
           this.isLastPage = response.navigation.is_last_page;
   
-          if (!this.isLastPage) {
-            this.chemicalElemetService.getChemicalElementsNextPage(this.currentPage)
+          if (!this.isFirstPage) {
+            this.chemicalElemetService.getChemicalElementsPreviousPage(this.currentPage)
               .then(response => {
-                  this.nextElements = response.data;
+                  this.prevElements = response.data;
       
                   this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
               });
           }
           else {
-            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements));
+            this.prevElements = [];
+            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
           }
 
         });
@@ -117,6 +119,7 @@ export class TableComponent implements OnInit, AfterViewInit {
 
       this.chemicalElemetService.getChemicalElementsNextPage(this.currentPage)
         .then(response => {
+          this.prevElements = this.currElements;
           this.currElements = response.data;
 
           this.currentPage = response.navigation.page;
@@ -132,7 +135,8 @@ export class TableComponent implements OnInit, AfterViewInit {
               });
           }
           else {
-            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements));
+            this.nextElements = [];
+            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
           }
 
         });
