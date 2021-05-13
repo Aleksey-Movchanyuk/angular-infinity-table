@@ -18,9 +18,7 @@ export class TableComponent implements OnInit, AfterViewInit {
 
   displayedColumns = ['position', 'name', 'weight', 'symbol'];
 
-  prevElements: ChemicalElement[] = [];
-  currElements: ChemicalElement[] = [];
-  nextElements: ChemicalElement[] = [];
+  elements: ChemicalElement[] = [];
 
   dataSource: any = new TableVirtualScrollDataSource();
 
@@ -45,7 +43,7 @@ export class TableComponent implements OnInit, AfterViewInit {
     this.chemicalElemetService.getChemicalElements()
       .then(response => {
 
-        this.currElements = response.data;
+        this.elements = response.data;
 
         this.currentPage = response.navigation.page;
         this.isFirstPage = response.navigation.is_first_page;
@@ -54,13 +52,13 @@ export class TableComponent implements OnInit, AfterViewInit {
         if (!this.isLastPage) {
           this.chemicalElemetService.getChemicalElementsNextPage(this.currentPage)
             .then(response => {
-                this.nextElements = response.data;
+                this.elements = this.elements.concat(response.data);
     
-                this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
+                this.dataSource = new TableVirtualScrollDataSource(this.elements);
             });
         }
         else {
-          this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements));
+          this.dataSource = new TableVirtualScrollDataSource(this.elements);
         }
 
 
@@ -83,45 +81,12 @@ export class TableComponent implements OnInit, AfterViewInit {
     const scrollLocation = e.elementRef.nativeElement.scrollTop; // how far user scrolled
     
 
-    // if we on the starting position
-    if (scrollLocation <= 10) {
-      console.log("Start");
-
-      this.chemicalElemetService.getChemicalElementsPreviousPage(this.currentPage)
-        .then(response => {
-          this.nextElements = this.currElements;
-          this.currElements = response.data;
-
-          this.currentPage = response.navigation.page;
-          this.isFirstPage = response.navigation.is_first_page;
-          this.isLastPage = response.navigation.is_last_page;
-  
-          if (!this.isFirstPage) {
-            this.chemicalElemetService.getChemicalElementsPreviousPage(this.currentPage)
-              .then(response => {
-                  this.prevElements = response.data;
-      
-                  this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
-              });
-          }
-          else {
-            this.prevElements = [];
-            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
-          }
-
-        });
-
-    }
-
     // visible height + pixel scrolled >= total height 
-    if (tableViewHeight + scrollLocation >= (tableScrollHeight / 2) - 1) {
+    if (tableViewHeight + scrollLocation >= tableScrollHeight - 50) {
       console.log("End");
 
       this.chemicalElemetService.getChemicalElementsNextPage(this.currentPage)
         .then(response => {
-          this.prevElements = this.currElements;
-          this.currElements = response.data;
-
           this.currentPage = response.navigation.page;
           this.isFirstPage = response.navigation.is_first_page;
           this.isLastPage = response.navigation.is_last_page;
@@ -129,14 +94,13 @@ export class TableComponent implements OnInit, AfterViewInit {
           if (!this.isLastPage) {
             this.chemicalElemetService.getChemicalElementsNextPage(this.currentPage)
               .then(response => {
-                  this.nextElements = response.data;
-      
-                  this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
+                this.elements = this.elements.concat(response.data);
+    
+                this.dataSource = new TableVirtualScrollDataSource(this.elements);
               });
           }
           else {
-            this.nextElements = [];
-            this.dataSource = new TableVirtualScrollDataSource(this.prevElements.concat(this.currElements.concat(this.nextElements)));
+            this.dataSource = new TableVirtualScrollDataSource(this.elements);
           }
 
         });
